@@ -1,1 +1,21 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><title>Nect Cloud</title><body><h1>Nect Cloud</h1><p>Layout editor bootstrap</p></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="ブラウザで使う小さなレイアウトエディタ。文字、矩形、マージン、カラム、ガイド。">
+<title>Nect Cloud — Layout editor</title><link rel="stylesheet" href="./app.css">
+<script defer src="./model.js"></script><script defer src="./app.js"></script>
+</head>
+<body>
+<header class="topbar"><div class="brand">Nect <span>Cloud</span><small>0.1</small></div><nav aria-label="ファイル"><button id="export">JSON保存</button><button id="import">開く</button><input id="import-file" type="file" accept=".json,application/json" hidden></nav></header>
+<div class="toolbar" role="toolbar" aria-label="編集ツール"><div class="tools"><button id="add-text">＋ 文字</button><button id="add-rect">＋ 矩形</button><button id="undo" title="元に戻す (Ctrl / ⌘ Z)">↶<span>戻す</span></button><button id="redo" title="やり直し (Ctrl / ⌘ Shift Z)">↷<span>やり直し</span></button></div><div class="view-tools"><button id="fit">画面に合わせる</button><label class="zoom-label">倍率 <select id="zoom"><option value="fit">自動</option><option value="0.5">50%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label><button id="panel-toggle" aria-controls="inspector" aria-expanded="false">設定</button></div></div>
+<main><section class="workspace" id="workspace" aria-label="キャンバス"><div class="canvas-wrap"><svg id="canvas" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="アートボード"></svg></div><div class="canvas-note">文字・矩形はドラッグで移動。細かい調整は右の数値から。</div></section>
+<aside id="inspector" aria-label="プロパティ">
+<details open><summary>アートボード <span>mm</span></summary><div class="section-body"><div class="grid2"><label>幅<input id="board-width" type="number" min="1" max="5000" step="1"></label><label>高さ<input id="board-height" type="number" min="1" max="5000" step="1"></label></div><div class="row"><button id="a4">A4 縦</button><button id="landscape">縦横を入替</button></div></div></details>
+<details open><summary>マージン・カラム</summary><div class="section-body"><div class="grid2"><label>上<input id="margin-top" type="number" min="0" step=".1"></label><label>下<input id="margin-bottom" type="number" min="0" step=".1"></label><label>左<input id="margin-left" type="number" min="0" step=".1"></label><label>右<input id="margin-right" type="number" min="0" step=".1"></label><label>カラム<input id="columns" type="number" min="1" max="24" step="1"></label><label>ガター<input id="gutter" type="number" min="0" step=".1"></label></div><div class="checks"><label><input id="show-guides" type="checkbox" checked>ガイド表示</label><label><input id="snap" type="checkbox" checked>スナップ</label><label><input id="edit-guides" type="checkbox">ガイドをドラッグ編集</label></div><div class="grid2"><button id="add-guide-x">＋ 垂直ガイド</button><button id="add-guide-y">＋ 水平ガイド</button></div><div id="guide-list" class="guide-list"></div></div></details>
+<details open><summary>選択オブジェクト <span id="selection-type">未選択</span></summary><div class="section-body"><p id="empty-selection" class="muted">キャンバス上のオブジェクトを選択</p><div id="object-properties" hidden><div class="grid2"><label>X<input id="object-x" type="number" step=".1"></label><label>Y<input id="object-y" type="number" step=".1"></label><label>幅<input id="object-width" type="number" min=".1" step=".1"></label><label>高さ<input id="object-height" type="number" min=".1" step=".1"></label></div><label class="color-row">色<input id="object-color" type="color"></label><div id="text-properties"><label>文字<textarea id="object-text" rows="3" maxlength="20000"></textarea></label><label class="color-row">文字サイズ (mm)<input id="font-size" type="number" min=".5" max="200" step=".1"></label><p class="muted">1 mm ≈ 2.835 pt。幅は選択枠です（自動折返しなし）。</p></div><div class="grid2"><button id="backward">背面へ</button><button id="forward">前面へ</button><button id="duplicate">複製</button><button id="delete" class="danger">削除</button></div></div></div></details>
+<details><summary>オブジェクト一覧 <span id="object-count">0</span></summary><div class="section-body" id="layers"></div></details>
+<p class="local-note">この端末に自動保存。端末間の同期は未対応です。</p>
+</aside></main>
+<footer><span id="status" role="status" aria-live="polite">準備中</span><span id="dimensions">210 × 297 mm</span></footer>
+</body></html>
