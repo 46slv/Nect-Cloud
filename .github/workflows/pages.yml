@@ -22,23 +22,38 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - run: node tests/browser.cjs
-      - name: Package only public app files
-        run: mkdir public && cp index.html app.css app.js model.js public/
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: public
   deploy:
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+      - name: Package only public app files
+        run: mkdir public && cp index.html app.css app.js model.js public/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          name: github-pages-${{ github.run_attempt }}
+          path: public
+          retention-days: 7
       - uses: actions/configure-pages@v5
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Verify published editor with mouse and touch
+        env:
+          NECT_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node tests/browser.cjs
