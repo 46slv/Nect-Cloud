@@ -9,7 +9,7 @@
   const clone = value => JSON.parse(JSON.stringify(value));
   const round = n => Math.round(n * 100) / 100;
   const status = (message, error = false) => { $('status').textContent = message; $('status').dataset.error = String(error); };
-  function remember() { history.push(JSON.stringify(doc)); if(history.length > 60) history.shift(); future.length = 0; }
+  function remember(previous = doc) { history.push(JSON.stringify(previous)); if(history.length > 60) history.shift(); future.length = 0; }
   function save() {
     if(!savingAllowed) {status('保存済みデータを保護中。JSON保存で現在の編集を残せます。', true); return;}
     try {localStorage.setItem(KEY,JSON.stringify(doc)); status('この端末に保存済み');}
@@ -93,7 +93,11 @@
   $('delete').addEventListener('click',remove);
   $('duplicate').addEventListener('click',()=>{if(!object()||board().objects.length>=2000)return;remember();const o=clone(object());o.id=M.id();o.x=Math.min(5000,o.x+4);o.y=Math.min(5000,o.y+4);board().objects.push(o);selected=o.id;render();save();});
   for(const [name,d] of [['backward',-1],['forward',1]]) $(name).addEventListener('click',()=>{const a=board().objects,i=a.findIndex(o=>o.id===selected),j=i+d;if(i<0||j<0||j>=a.length)return;remember();[a[i],a[j]]=[a[j],a[i]];render();save();});
-  function travel(from,to) {if(!from.length)return;to.push(JSON.stringify(doc));doc=JSON.parse(from.pop());if(!object())selected=null;render();save();}
+  function travel(from,to) {
+    if(drag)finishDrag({pointerId:drag.pointer},true);
+    if(!from.length)return;
+    to.push(JSON.stringify(doc));doc=JSON.parse(from.pop());if(!object())selected=null;render();save();
+  }
   $('undo').addEventListener('click',()=>travel(history,future));$('redo').addEventListener('click',()=>travel(future,history));
   const point=e=>{const r=$('canvas').getBoundingClientRect();return {x:(e.clientX-r.left)*board().width/r.width,y:(e.clientY-r.top)*board().height/r.height};};
   $('canvas').addEventListener('pointerdown',e=>{
@@ -101,7 +105,7 @@
     const g=e.target.closest('[data-guide]'), target=e.target.closest('[data-id]');
     selected=target?.dataset.id||null;const o=object();
     if(!g&&!o){render();return;}
-    remember();drag={pointer:e.pointerId,start:point(e),before:clone(doc),id:g?.dataset.guide,objectId:o?.id,x:o?.x,y:o?.y};
+    drag={pointer:e.pointerId,start:point(e),before:clone(doc),id:g?.dataset.guide,objectId:o?.id,x:o?.x,y:o?.y};
     // Canvas itself survives redraws, so capture stays valid on mouse and touch.
     $('canvas').setPointerCapture(e.pointerId);draw();syncProperties();e.preventDefault();
   });
@@ -113,7 +117,13 @@
       o.x=round(Math.max(-5000,Math.min(5000,x)));o.y=round(Math.max(-5000,Math.min(5000,y)));
     }draw();syncProperties();
   });
-  function finishDrag(e,cancel=false) {if(!drag||e.pointerId!==drag.pointer)return;const pointer=drag.pointer;if(cancel){doc=drag.before;history.pop();}drag=null;if($('canvas').hasPointerCapture(pointer))$('canvas').releasePointerCapture(pointer);render();save();}
+  function finishDrag(e,cancel=false) {
+    if(!drag||e.pointerId!==drag.pointer)return;
+    const {pointer,before}=drag;
+    if(cancel)doc=before;
+    else if(JSON.stringify(doc)!==JSON.stringify(before))remember(before);
+    drag=null;if($('canvas').hasPointerCapture(pointer))$('canvas').releasePointerCapture(pointer);render();save();
+  }
   $('canvas').addEventListener('pointerup',e=>finishDrag(e));$('canvas').addEventListener('pointercancel',e=>finishDrag(e,true));$('canvas').addEventListener('lostpointercapture',e=>finishDrag(e));
   for(const id of ['show-guides','edit-guides'])$(id).addEventListener('change',draw);
   $('zoom').addEventListener('change',fitCanvas);$('fit').addEventListener('click',()=>{$('zoom').value='fit';fitCanvas();});
